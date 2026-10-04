@@ -1,0 +1,7 @@
+{
+  "id": "aerial-checks",
+  "name": "Aerial checks",
+  "description": "Runs every gate this project has: formatting, vet, Go tests package by package, the race detector, the front-end types and build, and the dependency licence audit required by LICENCE.md.",
+  "backend": "backend.mjs",
+  "permissions": { "shell": true, "workspace": "read" }
+}

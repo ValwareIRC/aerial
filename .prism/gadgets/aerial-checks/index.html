@@ -1,0 +1,410 @@
+<!doctype html>
+<html lang="en-GB">
+  <head>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="prism-gadget://_sdk/base.css" />
+    <script src="prism-gadget://_sdk/prism.js"></script>
+    <style>
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        height: 100%;
+        margin: 0;
+      }
+      body {
+        display: flex;
+        flex-direction: column;
+        font-size: 13px;
+      }
+
+      header {
+        flex: 0 0 auto;
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 8px;
+        padding: 12px 14px;
+        border-bottom: 1px solid var(--border, #2a2a2a);
+      }
+      header h1 {
+        font-size: 14px;
+        font-weight: 600;
+        margin: 0;
+        flex: 1 1 auto;
+        min-width: 0;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .totals {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        min-width: 0;
+      }
+      .total {
+        white-space: nowrap;
+      }
+      .total b {
+        font-variant-numeric: tabular-nums;
+      }
+
+      main {
+        flex: 1 1 auto;
+        overflow: auto;
+        padding: 12px 14px 20px;
+      }
+
+      .group {
+        margin: 0 0 6px;
+        font-size: 11px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        opacity: 0.55;
+      }
+      .group:not(:first-child) {
+        margin-top: 18px;
+      }
+
+      .check {
+        border: 1px solid var(--border, #2a2a2a);
+        border-radius: 8px;
+        padding: 10px 12px;
+        margin-bottom: 8px;
+        background: var(--panel, rgba(255, 255, 255, 0.02));
+      }
+      .row {
+        display: flex;
+        align-items: baseline;
+        gap: 8px;
+        min-width: 0;
+      }
+      .dot {
+        flex: 0 0 auto;
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: #555;
+        margin-top: 4px;
+      }
+      .dot.pass {
+        background: var(--mint, #4e9e78);
+      }
+      .dot.fail {
+        background: var(--rose, #c2547f);
+      }
+      .dot.skip {
+        background: var(--amber, #b58a12);
+      }
+      .dot.running {
+        background: var(--accent, #3f86b8);
+        animation: pulse 1s ease-in-out infinite;
+      }
+      @keyframes pulse {
+        50% {
+          opacity: 0.25;
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .dot.running {
+          animation: none;
+        }
+      }
+
+      .name {
+        font-weight: 600;
+        flex: 0 1 auto;
+        min-width: 0;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .summary {
+        flex: 1 1 auto;
+        min-width: 0;
+        opacity: 0.8;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .ms {
+        flex: 0 0 auto;
+        opacity: 0.45;
+        font-variant-numeric: tabular-nums;
+      }
+      .why {
+        margin: 4px 0 0 16px;
+        opacity: 0.5;
+        font-size: 12px;
+      }
+      .detail {
+        margin: 4px 0 0 16px;
+        font-size: 12px;
+        opacity: 0.75;
+      }
+      .cmd {
+        margin-left: 16px;
+        opacity: 0.4;
+        font-size: 11.5px;
+      }
+
+      .pkgs {
+        margin: 8px 0 0 16px;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 2px 12px;
+      }
+      .pkg {
+        display: flex;
+        gap: 6px;
+        align-items: center;
+        min-width: 0;
+        font-size: 12px;
+      }
+      .pkg span:first-child {
+        flex: 1 1 auto;
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        opacity: 0.8;
+      }
+      .pkg b {
+        font-variant-numeric: tabular-nums;
+        opacity: 0.6;
+        font-weight: 500;
+      }
+      .pkg.fail span:first-child {
+        color: var(--rose, #c2547f);
+        opacity: 1;
+      }
+
+      .failures {
+        margin: 8px 0 0 16px;
+      }
+      .failures div {
+        color: var(--rose, #c2547f);
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      pre {
+        margin: 8px 0 0 16px;
+        padding: 8px 10px;
+        background: rgba(0, 0, 0, 0.3);
+        border-radius: 6px;
+        max-height: 220px;
+        overflow: auto;
+        font-size: 11.5px;
+        white-space: pre-wrap;
+        word-break: break-word;
+      }
+
+      .actions {
+        margin: 6px 0 0 16px;
+        display: flex;
+        gap: 6px;
+        flex-wrap: wrap;
+      }
+      button {
+        font: inherit;
+      }
+      button.tiny {
+        padding: 2px 8px;
+        font-size: 11.5px;
+      }
+      .warn {
+        margin: 0 14px 10px;
+        padding: 8px 10px;
+        border-radius: 6px;
+        border: 1px solid var(--amber, #b58a12);
+        font-size: 12px;
+      }
+      .hidden {
+        display: none;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>Checks</h1>
+      <div class="totals" id="totals"></div>
+      <button class="primary" id="runAll">Run all</button>
+      <button id="clear">Clear</button>
+    </header>
+    <div class="warn hidden" id="warn"></div>
+    <main id="main"></main>
+
+    <script>
+      let state = { checks: [], results: {}, tools: {}, running: null }
+      const open = new Set()
+
+      const el = (tag, cls, text) => {
+        const n = document.createElement(tag)
+        if (cls) n.className = cls
+        if (text !== undefined) n.textContent = text
+        return n
+      }
+
+      const WORD = {
+        pass: 'Passed',
+        fail: 'Failed',
+        skip: 'Skipped',
+        running: 'Running',
+        idle: 'Not run',
+      }
+
+      function render() {
+        const main = document.getElementById('main')
+        main.textContent = ''
+
+        const counts = { pass: 0, fail: 0, skip: 0, idle: 0 }
+        for (const c of state.checks) {
+          const s = (state.results[c.id] || {}).state || 'idle'
+          counts[s === 'running' ? 'idle' : s]++
+        }
+        const totals = document.getElementById('totals')
+        totals.textContent = ''
+        const bits = [
+          ['passed', counts.pass, 'var(--mint, #4e9e78)'],
+          ['failed', counts.fail, 'var(--rose, #c2547f)'],
+          ['skipped', counts.skip, 'var(--amber, #b58a12)'],
+          ['not run', counts.idle, 'inherit'],
+        ]
+        for (const [label, n, colour] of bits) {
+          if (!n) continue
+          const d = el('div', 'total')
+          const b = el('b', null, String(n))
+          b.style.color = colour
+          d.append(b, document.createTextNode(' ' + label))
+          totals.append(d)
+        }
+
+        const warn = document.getElementById('warn')
+        const missing = []
+        if (!state.tools.go) missing.push('Go')
+        if (!state.tools.npm) missing.push('npm')
+        if (missing.length) {
+          warn.textContent =
+            missing.join(' and ') +
+            ' could not be found, so those checks are skipped. They were extracted portably rather than installed — see QUESTIONS.md item 4.'
+          warn.classList.remove('hidden')
+        } else {
+          warn.classList.add('hidden')
+        }
+
+        let group = null
+        for (const c of state.checks) {
+          if (c.group !== group) {
+            group = c.group
+            main.append(el('p', 'group', group))
+          }
+          main.append(card(c, state.results[c.id] || { state: 'idle' }))
+        }
+      }
+
+      function card(check, r) {
+        const box = el('div', 'check')
+        const row = el('div', 'row')
+        row.append(el('i', 'dot ' + r.state))
+        row.append(el('div', 'name', check.name))
+        row.append(el('div', 'summary', r.summary || WORD[r.state] || ''))
+        if (r.ms) row.append(el('div', 'ms', r.ms > 1500 ? (r.ms / 1000).toFixed(1) + 's' : r.ms + 'ms'))
+        box.append(row)
+
+        box.append(el('div', 'cmd mono', check.what))
+        box.append(el('div', 'why', check.why))
+        if (r.detail) box.append(el('div', 'detail', r.detail))
+
+        if (r.packages && r.packages.length) {
+          const pkgs = el('div', 'pkgs')
+          for (const p of r.packages) {
+            if (!p.tests && p.state !== 'fail') continue
+            const line = el('div', 'pkg' + (p.state === 'fail' ? ' fail' : ''))
+            line.append(el('span', null, p.name))
+            line.append(el('b', null, String(p.tests)))
+            pkgs.append(line)
+          }
+          if (pkgs.childElementCount) box.append(pkgs)
+        }
+
+        if (r.failures && r.failures.length) {
+          const list = el('div', 'failures mono')
+          for (const f of r.failures.slice(0, 12)) list.append(el('div', null, f))
+          box.append(list)
+        }
+
+        const actions = el('div', 'actions')
+        const run = el('button', 'tiny', r.state === 'running' ? 'Running…' : 'Run')
+        run.disabled = r.state === 'running' || !!state.running
+        run.onclick = () => runCheck(check.id)
+        actions.append(run)
+
+        if (r.output) {
+          const toggle = el('button', 'tiny', open.has(check.id) ? 'Hide output' : 'Show output')
+          toggle.onclick = () => {
+            open.has(check.id) ? open.delete(check.id) : open.add(check.id)
+            render()
+          }
+          actions.append(toggle)
+        }
+
+        if (r.state === 'fail') {
+          const ask = el('button', 'tiny', 'Ask the agent to fix it')
+          ask.onclick = () =>
+            prism.agent.send(
+              'In the Aerial checks gadget, "' +
+                check.name +
+                '" is failing (' +
+                (r.summary || '') +
+                '). Please look into it and fix it.',
+            )
+          actions.append(ask)
+        }
+        box.append(actions)
+
+        if (open.has(check.id) && r.output) box.append(el('pre', 'mono', r.output))
+        return box
+      }
+
+      async function refresh() {
+        state = await prism.call('state')
+        render()
+      }
+
+      async function runCheck(id) {
+        document.getElementById('runAll').disabled = true
+        try {
+          await prism.call('run', { id })
+        } finally {
+          await refresh()
+          document.getElementById('runAll').disabled = false
+        }
+      }
+
+      prism.ready(async () => {
+        document.getElementById('runAll').onclick = () => runCheck('all')
+        document.getElementById('clear').onclick = async () => {
+          await prism.call('clear')
+          await refresh()
+        }
+        prism.on('result', (data) => {
+          if (!data) return refresh()
+          state.results[data.id] = data.result
+          state.running = data.running
+          render()
+        })
+        prism.on('tools', (t) => {
+          state.tools = t
+          render()
+        })
+        await refresh()
+      })
+    </script>
+  </body>
+</html>

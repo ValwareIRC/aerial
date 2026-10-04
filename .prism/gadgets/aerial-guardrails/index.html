@@ -1,0 +1,287 @@
+<!doctype html>
+<html lang="en-GB">
+  <head>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="prism-gadget://_sdk/base.css" />
+    <script src="prism-gadget://_sdk/prism.js"></script>
+    <style>
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        height: 100%;
+        margin: 0;
+      }
+      body {
+        display: flex;
+        flex-direction: column;
+        font-size: 13px;
+      }
+
+      header {
+        flex: 0 0 auto;
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 8px;
+        padding: 12px 14px;
+        border-bottom: 1px solid var(--border, #2a2a2a);
+      }
+      h1 {
+        font-size: 14px;
+        font-weight: 600;
+        margin: 0;
+        flex: 1 1 auto;
+        min-width: 0;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .score {
+        font-variant-numeric: tabular-nums;
+        white-space: nowrap;
+      }
+      .score b {
+        font-size: 15px;
+      }
+      .server {
+        padding: 0 14px 10px;
+        font-size: 12px;
+        opacity: 0.55;
+      }
+      main {
+        flex: 1 1 auto;
+        overflow: auto;
+        padding: 0 14px 24px;
+      }
+
+      .intro {
+        margin: 0 0 14px;
+        font-size: 12.5px;
+        opacity: 0.6;
+      }
+
+      .section {
+        margin: 16px 0 6px;
+      }
+      .section h2 {
+        font-size: 11px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        opacity: 0.55;
+        margin: 0;
+      }
+      .section p {
+        margin: 2px 0 0;
+        font-size: 12px;
+        opacity: 0.45;
+      }
+
+      .probe {
+        border-left: 3px solid #444;
+        padding: 7px 0 7px 10px;
+        margin: 7px 0;
+      }
+      .probe.pass {
+        border-left-color: var(--mint, #4e9e78);
+      }
+      .probe.fail {
+        border-left-color: var(--rose, #c2547f);
+      }
+      .probe.running {
+        border-left-color: var(--accent, #3f86b8);
+      }
+      .probe-top {
+        display: flex;
+        gap: 8px;
+        align-items: baseline;
+        min-width: 0;
+      }
+      .probe-top h3 {
+        margin: 0;
+        font-size: 13px;
+        font-weight: 600;
+        flex: 1 1 auto;
+        min-width: 0;
+      }
+      .verdict {
+        flex: 0 0 auto;
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        opacity: 0.8;
+      }
+      .verdict.pass {
+        color: var(--mint, #4e9e78);
+      }
+      .verdict.fail {
+        color: var(--rose, #c2547f);
+      }
+      .why {
+        margin: 3px 0 0;
+        font-size: 12px;
+        opacity: 0.55;
+      }
+      .found {
+        margin: 4px 0 0;
+        font-size: 12px;
+        opacity: 0.85;
+        word-break: break-word;
+      }
+      .fail .found {
+        color: var(--rose, #c2547f);
+      }
+      button {
+        font: inherit;
+      }
+      button.tiny {
+        font-size: 11.5px;
+        padding: 2px 8px;
+      }
+      .problem {
+        border: 1px solid var(--rose, #c2547f);
+        border-radius: 6px;
+        padding: 8px 10px;
+        margin: 0 0 12px;
+        font-size: 12px;
+      }
+      .hidden {
+        display: none;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>Guardrails</h1>
+      <div class="score" id="score"></div>
+      <button class="primary" id="run">Run</button>
+    </header>
+    <div class="server" id="server"></div>
+    <main id="main"></main>
+
+    <script>
+      let state = null
+
+      const el = (tag, cls, text) => {
+        const n = document.createElement(tag)
+        if (cls) n.className = cls
+        if (text !== undefined) n.textContent = text
+        return n
+      }
+
+      function render() {
+        const main = document.getElementById('main')
+        main.textContent = ''
+        if (!state) return
+
+        const c = state.counts
+        const score = document.getElementById('score')
+        score.textContent = ''
+        if (c.passed || c.failed) {
+          const b = el('b', null, String(c.passed))
+          b.style.color = c.failed ? 'var(--amber, #b58a12)' : 'var(--mint, #4e9e78)'
+          score.append(b, document.createTextNode(' of ' + c.total + ' hold'))
+          if (c.failed) {
+            const f = el('span', null, ' · ' + c.failed + ' broken')
+            f.style.color = 'var(--rose, #c2547f)'
+            score.append(f)
+          }
+        }
+
+        const words = {
+          stopped: 'Server not running',
+          building: 'Building the server…',
+          starting: 'Starting the server…',
+          running: 'Server running',
+        }
+        document.getElementById('server').textContent =
+          (words[state.status.state] || state.status.state) +
+          (state.status.detail ? ' — ' + state.status.detail : '')
+
+        main.append(
+          el(
+            'p',
+            'intro',
+            'Builds the real server, runs it on a spare port with its demonstration data, and asks it the things this project promises. The instance is thrown away afterwards: some of these probes change data on purpose.',
+          ),
+        )
+
+        for (const section of state.sections) {
+          const probes = state.probes.filter((p) => p.section === section.id)
+          if (!probes.length) continue
+          const head = el('div', 'section')
+          head.append(el('h2', null, section.name))
+          head.append(el('p', null, section.note))
+          main.append(head)
+          for (const probe of probes) main.append(probeRow(probe))
+        }
+      }
+
+      function probeRow(probe) {
+        const r = state.results[probe.id] || {}
+        const box = el('div', 'probe ' + (r.state || ''))
+        const top = el('div', 'probe-top')
+        top.append(el('h3', null, probe.title))
+        if (r.state === 'pass') top.append(el('span', 'verdict pass', 'holds'))
+        else if (r.state === 'fail') top.append(el('span', 'verdict fail', 'broken'))
+        else if (r.state === 'running') top.append(el('span', 'verdict', 'asking…'))
+        box.append(top)
+        box.append(el('p', 'why', probe.why))
+        if (r.found) box.append(el('p', 'found mono', r.found))
+        if (r.state === 'fail') {
+          const ask = el('button', 'tiny', 'Ask the agent to look')
+          ask.onclick = () =>
+            prism.agent.send(
+              'In the Aerial guardrails gadget, the probe "' +
+                probe.title +
+                '" is failing. It found: ' +
+                (r.found || 'nothing') +
+                '. Please investigate and fix it.',
+            )
+          box.append(ask)
+        }
+        return box
+      }
+
+      async function refresh() {
+        state = await prism.call('state')
+        render()
+      }
+
+      prism.ready(async () => {
+        document.getElementById('run').onclick = async () => {
+          const button = document.getElementById('run')
+          button.disabled = true
+          button.textContent = 'Running…'
+          try {
+            const out = await prism.call('run')
+            if (out && out.error) prism.ui.toast('Could not run the probes', out.error)
+          } finally {
+            button.disabled = false
+            button.textContent = 'Run'
+            await refresh()
+          }
+        }
+        prism.on('status', (s) => {
+          if (state) {
+            state.status = s
+            render()
+          }
+        })
+        prism.on('result', (data) => {
+          if (!state) return
+          if (!data) {
+            state.results = {}
+          } else {
+            state.results[data.id] = data.result
+          }
+          render()
+        })
+        await refresh()
+      })
+    </script>
+  </body>
+</html>

@@ -1,0 +1,42 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+bin/
+
+# Go
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+coverage.*
+
+# The compiled server. Anchored and given a path on purpose: a bare "aerald"
+# also matches the directory backend/cmd/aerald and silently excludes the
+# whole main package.
+/backend/aerald
+/backend/cmd/aerald/aerald
+
+# Environment / secrets
+.env
+.env.*
+!.env.example
+
+# Caches
+.vite/
+.cache/
+tmp/
+
+# Prism's per-session decision log (gadgets under .prism/ are shared)
+.prism/decisions.jsonl
+
+# Editor / OS
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp

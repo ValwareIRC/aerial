@@ -1,0 +1,7 @@
+{
+  "id": "aerial-work",
+  "name": "Aerial work",
+  "description": "What changed in this workspace and why: a ledger of each piece of work with the files it touched and the tests that hold it, plus the live uncommitted diff grouped by area. Tick items off as you review them.",
+  "backend": "backend.mjs",
+  "permissions": { "shell": true, "workspace": "read" }
+}

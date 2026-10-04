@@ -1,0 +1,493 @@
+<!doctype html>
+<html lang="en-GB">
+  <head>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="prism-gadget://_sdk/base.css" />
+    <script src="prism-gadget://_sdk/prism.js"></script>
+    <style>
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        height: 100%;
+        margin: 0;
+      }
+      body {
+        display: flex;
+        flex-direction: column;
+        font-size: 13px;
+      }
+
+      header {
+        flex: 0 0 auto;
+        padding: 12px 14px 0;
+        border-bottom: 1px solid var(--border, #2a2a2a);
+      }
+      .top {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: baseline;
+        gap: 8px;
+      }
+      h1 {
+        font-size: 14px;
+        margin: 0;
+        font-weight: 600;
+        flex: 1 1 auto;
+        min-width: 0;
+      }
+      .meta {
+        opacity: 0.55;
+        font-variant-numeric: tabular-nums;
+        white-space: nowrap;
+      }
+      .tabs {
+        display: flex;
+        gap: 2px;
+        margin: 10px 0 0;
+        flex-wrap: wrap;
+      }
+      .tabs button {
+        background: none;
+        border: 0;
+        border-bottom: 2px solid transparent;
+        padding: 6px 10px;
+        font: inherit;
+        opacity: 0.6;
+        cursor: pointer;
+      }
+      .tabs button[aria-selected='true'] {
+        opacity: 1;
+        border-bottom-color: var(--accent, #3f86b8);
+      }
+
+      main {
+        flex: 1 1 auto;
+        overflow: auto;
+        padding: 12px 14px 24px;
+      }
+
+      .bar {
+        display: flex;
+        height: 6px;
+        border-radius: 3px;
+        overflow: hidden;
+        background: rgba(255, 255, 255, 0.08);
+        margin: 10px 0 2px;
+      }
+      .bar i {
+        display: block;
+      }
+      .legend {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        font-size: 11.5px;
+        opacity: 0.6;
+        margin-bottom: 2px;
+      }
+
+      .group-head {
+        margin: 18px 0 4px;
+      }
+      .group-head:first-child {
+        margin-top: 0;
+      }
+      .group-head h2 {
+        font-size: 11px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        opacity: 0.55;
+        margin: 0;
+      }
+      .group-head p {
+        margin: 2px 0 0;
+        font-size: 12px;
+        opacity: 0.45;
+      }
+
+      .item {
+        border: 1px solid var(--border, #2a2a2a);
+        border-left-width: 3px;
+        border-radius: 8px;
+        padding: 9px 11px;
+        margin: 6px 0;
+        background: var(--panel, rgba(255, 255, 255, 0.02));
+      }
+      .item.done {
+        opacity: 0.5;
+      }
+      .item.watch {
+        border-left-color: var(--amber, #b58a12);
+      }
+      .item.blocked {
+        border-left-color: var(--rose, #c2547f);
+      }
+      .item.plain {
+        border-left-color: var(--mint, #4e9e78);
+      }
+
+      .item-top {
+        display: flex;
+        gap: 8px;
+        align-items: baseline;
+        min-width: 0;
+      }
+      .item-top h3 {
+        font-size: 13px;
+        margin: 0;
+        font-weight: 600;
+        flex: 1 1 auto;
+        min-width: 0;
+      }
+      .flag {
+        flex: 0 0 auto;
+        font-size: 10.5px;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        padding: 1px 6px;
+        border-radius: 999px;
+        border: 1px solid currentColor;
+        opacity: 0.8;
+        white-space: nowrap;
+      }
+      .flag.watch {
+        color: var(--amber, #b58a12);
+      }
+      .flag.open {
+        color: var(--rose, #c2547f);
+      }
+
+      .why {
+        margin: 5px 0 0;
+        opacity: 0.75;
+        font-size: 12.5px;
+      }
+      .evidence {
+        margin: 5px 0 0;
+        font-size: 12px;
+        opacity: 0.6;
+      }
+      .files,
+      .tests {
+        margin: 7px 0 0;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 4px;
+      }
+      .chip {
+        font-size: 11.5px;
+        padding: 2px 7px;
+        border-radius: 999px;
+        border: 1px solid var(--border, #2a2a2a);
+        background: none;
+        color: inherit;
+        font-family: inherit;
+        cursor: pointer;
+        max-width: 260px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .chip:hover {
+        border-color: var(--accent, #3f86b8);
+      }
+      .chip.stale {
+        opacity: 0.4;
+        text-decoration: line-through;
+        cursor: default;
+      }
+      .chip.test {
+        cursor: default;
+        opacity: 0.6;
+      }
+      .chip b {
+        font-weight: 500;
+        opacity: 0.6;
+        font-variant-numeric: tabular-nums;
+      }
+
+      .item-actions {
+        margin: 8px 0 0;
+        display: flex;
+        gap: 6px;
+        flex-wrap: wrap;
+      }
+      button.tiny {
+        font: inherit;
+        font-size: 11.5px;
+        padding: 2px 8px;
+      }
+
+      .area {
+        margin: 14px 0 4px;
+        display: flex;
+        gap: 8px;
+        align-items: baseline;
+        flex-wrap: wrap;
+      }
+      .area h2 {
+        font-size: 12px;
+        margin: 0;
+        font-weight: 600;
+      }
+      .area span {
+        font-size: 11.5px;
+        opacity: 0.45;
+      }
+      .file {
+        display: flex;
+        gap: 8px;
+        align-items: baseline;
+        padding: 3px 0;
+        min-width: 0;
+      }
+      .file button {
+        flex: 1 1 auto;
+        min-width: 0;
+        text-align: left;
+        background: none;
+        border: 0;
+        padding: 0;
+        font: inherit;
+        font-size: 12px;
+        color: inherit;
+        cursor: pointer;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .file button:hover {
+        color: var(--accent, #3f86b8);
+      }
+      .file .plus {
+        color: var(--mint, #4e9e78);
+        font-variant-numeric: tabular-nums;
+        flex: 0 0 auto;
+      }
+      .file .minus {
+        color: var(--rose, #c2547f);
+        font-variant-numeric: tabular-nums;
+        flex: 0 0 auto;
+      }
+      .file .tag {
+        flex: 0 0 auto;
+        font-size: 10.5px;
+        opacity: 0.5;
+        text-transform: uppercase;
+      }
+      .warn {
+        border: 1px solid var(--amber, #b58a12);
+        border-radius: 6px;
+        padding: 8px 10px;
+        margin: 0 0 10px;
+        font-size: 12px;
+      }
+      .dim {
+        opacity: 0.5;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <div class="top">
+        <h1>Work</h1>
+        <div class="meta" id="meta"></div>
+        <button class="tiny" id="refresh">Refresh</button>
+      </div>
+      <div class="tabs" role="tablist">
+        <button role="tab" id="tab-ledger" aria-selected="true">Ledger</button>
+        <button role="tab" id="tab-files" aria-selected="false">Changed files</button>
+      </div>
+    </header>
+    <main id="main"></main>
+
+    <script>
+      let state = null
+      let tab = 'ledger'
+      let reviewed = {}
+
+      const el = (tag, cls, text) => {
+        const n = document.createElement(tag)
+        if (cls) n.className = cls
+        if (text !== undefined) n.textContent = text
+        return n
+      }
+
+      function render() {
+        const main = document.getElementById('main')
+        main.textContent = ''
+        if (!state) {
+          main.append(el('p', 'dim', 'Reading the diff…'))
+          return
+        }
+
+        const done = state.items.filter((i) => reviewed[i.id] && !i.blocked).length
+        const total = state.items.filter((i) => !i.blocked).length
+        document.getElementById('meta').textContent =
+          `${done}/${total} reviewed · ${state.files.length} files · +${state.totals.added} −${state.totals.removed}`
+
+        if (state.error) {
+          const w = el('div', 'warn', state.error)
+          main.append(w)
+        }
+
+        tab === 'ledger' ? renderLedger(main) : renderFiles(main)
+      }
+
+      function renderLedger(main) {
+        for (const group of state.groups) {
+          const items = state.items.filter((i) => i.group === group.id)
+          if (!items.length) continue
+          const head = el('div', 'group-head')
+          head.append(el('h2', null, group.name))
+          head.append(el('p', null, group.note))
+          main.append(head)
+          for (const item of items) main.append(itemCard(item))
+        }
+
+        if (state.unclaimed.length) {
+          const head = el('div', 'group-head')
+          head.append(el('h2', null, 'Not accounted for'))
+          head.append(el('p', null, 'Changed on disk but not described above.'))
+          main.append(head)
+          const box = el('div', 'item plain')
+          const files = el('div', 'files')
+          for (const path of state.unclaimed) files.append(fileChip({ path, added: 0, removed: 0, touched: true }))
+          box.append(files)
+          main.append(box)
+        }
+      }
+
+      function itemCard(item) {
+        const cls = item.blocked ? 'blocked' : item.watch ? 'watch' : 'plain'
+        const box = el('div', 'item ' + cls + (reviewed[item.id] ? ' done' : ''))
+
+        const top = el('div', 'item-top')
+        top.append(el('h3', null, item.title))
+        if (item.watch) top.append(el('span', 'flag watch', 'second look'))
+        if (item.blocked) top.append(el('span', 'flag open', 'open'))
+        box.append(top)
+
+        box.append(el('p', 'why', item.why))
+        if (item.evidence) box.append(el('p', 'evidence', item.evidence))
+
+        if (item.files.length) {
+          const files = el('div', 'files')
+          for (const f of item.files) files.append(fileChip(f))
+          box.append(files)
+        }
+
+        if (item.tests && item.tests.length) {
+          const tests = el('div', 'tests')
+          for (const t of item.tests) {
+            const chip = el('button', 'chip test')
+            chip.append(document.createTextNode(t))
+            chip.disabled = true
+            tests.append(chip)
+          }
+          box.append(tests)
+        }
+
+        const actions = el('div', 'item-actions')
+        if (!item.blocked) {
+          const tick = el('button', 'tiny', reviewed[item.id] ? 'Reviewed ✓' : 'Mark reviewed')
+          tick.onclick = async () => {
+            reviewed[item.id] = !reviewed[item.id]
+            await prism.state.set('reviewed', reviewed)
+            render()
+          }
+          actions.append(tick)
+        }
+        const explain = el('button', 'tiny', 'Explain this')
+        explain.onclick = () =>
+          prism.agent.send(
+            'In the Aerial work gadget, walk me through "' +
+              item.title +
+              '" in detail: what it was before, what it is now, and how I can convince myself it is right.',
+          )
+        actions.append(explain)
+        box.append(actions)
+        return box
+      }
+
+      function fileChip(f) {
+        const chip = el('button', 'chip' + (f.touched ? '' : ' stale'))
+        chip.title = f.touched ? f.path : f.path + ' — not in the current diff'
+        chip.append(document.createTextNode(short(f.path)))
+        if (f.added || f.removed) {
+          chip.append(document.createTextNode(' '))
+          chip.append(el('b', null, '+' + f.added + ' −' + f.removed))
+        }
+        if (f.touched) chip.onclick = () => prism.ui.openFile(f.path)
+        else chip.disabled = true
+        return chip
+      }
+
+      function short(path) {
+        const parts = path.split('/')
+        return parts.length <= 2 ? path : parts.slice(-2).join('/')
+      }
+
+      function renderFiles(main) {
+        if (!state.files.length) {
+          main.append(el('p', 'dim', 'Nothing uncommitted.'))
+          return
+        }
+        const max = Math.max(...state.files.map((f) => f.added + f.removed), 1)
+        let area = null
+        for (const f of state.files) {
+          if (f.area !== area) {
+            area = f.area
+            const head = el('div', 'area')
+            head.append(el('h2', null, area))
+            if (f.note) head.append(el('span', null, f.note))
+            main.append(head)
+          }
+          const row = el('div', 'file')
+          const open = el('button')
+          open.textContent = f.path
+          open.onclick = () => prism.ui.openFile(f.path)
+          row.append(open)
+          if (f.state === 'new') row.append(el('span', 'tag', 'new'))
+          row.append(el('span', 'plus', '+' + f.added))
+          row.append(el('span', 'minus', '−' + f.removed))
+          main.append(row)
+
+          const bar = el('div', 'bar')
+          const plus = el('i')
+          plus.style.width = ((f.added / max) * 100).toFixed(1) + '%'
+          plus.style.background = 'var(--mint, #4e9e78)'
+          const minus = el('i')
+          minus.style.width = ((f.removed / max) * 100).toFixed(1) + '%'
+          minus.style.background = 'var(--rose, #c2547f)'
+          bar.append(plus, minus)
+          main.append(bar)
+        }
+      }
+
+      async function refresh() {
+        state = await prism.call('state')
+        render()
+      }
+
+      prism.ready(async () => {
+        reviewed = (await prism.state.get('reviewed', {})) || {}
+        document.getElementById('refresh').onclick = refresh
+        for (const name of ['ledger', 'files']) {
+          document.getElementById('tab-' + name).onclick = () => {
+            tab = name
+            document.getElementById('tab-ledger').setAttribute('aria-selected', String(name === 'ledger'))
+            document.getElementById('tab-files').setAttribute('aria-selected', String(name === 'files'))
+            render()
+          }
+        }
+        render()
+        await refresh()
+      })
+    </script>
+  </body>
+</html>

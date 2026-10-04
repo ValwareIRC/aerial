@@ -1,0 +1,7 @@
+{
+  "id": "aerial-guardrails",
+  "name": "Aerial guardrails",
+  "description": "Builds and runs the real server on a spare port, then probes the promises this project makes: the enforcement wall holds, occupant tokens do not join up, missing data is a refusal rather than a plausible number, personal data is never cached, and small groups are withheld from reports.",
+  "backend": "backend.mjs",
+  "permissions": { "shell": true, "network": true, "workspace": "read" }
+}
